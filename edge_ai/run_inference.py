@@ -25,10 +25,8 @@ LATEST_FRAME_PATH = os.path.join(
 
 CUSTOM_MODEL_PATH = os.path.join(
     PROJECT_ROOT, 
-    'runs', 
-    'detect', 
     'SIH_Wildlife', 
-    'clean_wildlife_model-5', 
+    'edge_prototype', 
     'weights', 
     'best.pt'
 )

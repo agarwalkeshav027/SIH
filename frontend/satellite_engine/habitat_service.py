@@ -5,8 +5,8 @@ import random
 try:
     import ee
     # Optional: Initialize Earth Engine if authenticated
-    # ee.Initialize()
-    GEE_AVAILABLE = False
+    ee.Initialize()
+    GEE_AVAILABLE = True
 except Exception:
     GEE_AVAILABLE = False
 
