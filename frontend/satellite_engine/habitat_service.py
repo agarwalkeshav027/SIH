@@ -4,10 +4,10 @@ import random
 
 try:
     import ee
-    # Optional: Initialize Earth Engine if authenticated
-    ee.Initialize()
+    ee.Initialize(project='prime-team-490803-t4')
     GEE_AVAILABLE = True
-except Exception:
+except Exception as e:
+    print(f"[WARN] Earth Engine not initialized: {e}")
     GEE_AVAILABLE = False
 
 class HabitatService:
