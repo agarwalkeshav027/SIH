@@ -1,53 +1,41 @@
 # ==========================================
-# 1. DATASET & CACHES (Do not push to Git)
+# Large Datasets & Annotation Caches
 # ==========================================
-dataset/images/
-dataset/labels/
-dataset/test/
-dataset/train/
-dataset/valid/
+dataset/
+dataset_cleaned/
 *.cache
-*.db
+*.zip
+*.tar
+*.tar.gz
 
 # ==========================================
-# 2. BASE DOWNLOADED PRE-TRAINED MODELS
+# Training Outputs & Intermediate Runs
 # ==========================================
-yolov8*.pt
-yolo*.pt
+runs/
+SIH_Wildlife/clean_wildlife_model*/
+wandb/
 
 # ==========================================
-# 3. TRAINING RUN ARTIFACTS & BATCH VISUALIZATIONS
+# Frontend Dynamic Capture & Temp Files
 # ==========================================
-# Ignore large batch visualization images generated during training
-train_batch*.jpg
-val_batch*.jpg
-
-# Ignore intermediate training checkpoints (keep best.pt)
-**/weights/last.pt
-
-# Allow Git to track your best fine-tuned weights
-!**/weights/best.pt
+frontend/assets/latest_detection.jpg
 
 # ==========================================
-# 4. PYTHON & ENVIRONMENT ARTIFACTS
+# Python & Environment Artifacts
 # ==========================================
 __pycache__/
 *.py[cod]
 *$py.class
-*.ipynb_checkpoints/
-
-# Virtual Environments
-venv/
 .venv/
-env/
+venv/
 ENV/
-
-# Environment Variables & Secrets
+env/
 .env
-.env.*
 
-# OS & Editor Specific Files
-.DS_Store
-Thumbs.db
+# ==========================================
+# IDE & System Configuration
+# ==========================================
 .vscode/
 .idea/
+.DS_Store
+Thumbs.db

@@ -22,7 +22,16 @@ LATEST_FRAME_PATH = os.path.join(
     FRONTEND_ASSETS,
     "latest_detection.jpg"
 )
-CUSTOM_MODEL_PATH = os.path.join(PROJECT_ROOT, 'SIH_Wildlife', 'edge_prototype', 'weights', 'best.pt')
+
+CUSTOM_MODEL_PATH = os.path.join(
+    PROJECT_ROOT, 
+    'runs', 
+    'detect', 
+    'SIH_Wildlife', 
+    'clean_wildlife_model-5', 
+    'weights', 
+    'best.pt'
+)
 
 WILDLIFE_CONF = 0.55   # Wildlife confidence threshold
 PERSON_CONF = 0.50     # Human suppression threshold
