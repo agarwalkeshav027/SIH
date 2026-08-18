@@ -1015,7 +1015,7 @@ def analyze_wildlife_image(image_file):
     model = load_wildlife_model()
     result = model(
         image_array,
-        conf=0.25,
+        conf=0.5,
         verbose=False
     )[0]
 
@@ -1742,10 +1742,23 @@ with upload_col:
                     key=lambda detection: detection["confidence"]
                 )
 
-                st.success(
-                    f"🐾 {strongest_detection['species']} detected "
-                    f"with {strongest_detection['confidence'] * 100:.2f}% confidence"
-                )
+                top_species = strongest_detection["species"]
+                top_confidence = strongest_detection["confidence"]
+
+                # --- Added Manual Verification Condition ---
+                if top_confidence < 0.65:
+                    display_species = f"Possible {top_species} — unconfirmed, verify manually"
+                    st.warning(
+                        f"⚠️ {display_species} "
+                        f"(Confidence: {top_confidence * 100:.2f}%)"
+                    )
+                else:
+                    display_species = top_species
+                    st.success(
+                        f"🐾 {display_species} detected "
+                        f"with {top_confidence * 100:.2f}% confidence"
+                    )
+
                 st.caption(
                     f"{len(detections)} detection(s) found. "
                     "The annotated result is shown on the right."
