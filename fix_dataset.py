@@ -2,8 +2,7 @@ import os
 import shutil
 import yaml
 
-# 1. Define Old-to-New Class Mapping
-# Maps original data.yaml (54 classes) to clean filtered (16 classes)
+# 1. Define Old-to-New Class Mapping (54 classes -> 16 target classes)
 REMAP_DICT = {
     0: (0, 'Zebra'),
     1: (1, 'Lion'),
@@ -25,23 +24,25 @@ REMAP_DICT = {
 
 TARGET_OLD_IDS = set(REMAP_DICT.keys())
 
-# Paths (Adjust if your raw dataset folder is named differently)
-SOURCE_DIR = "./dataset"          # Folder containing images/ and labels/
-OUTPUT_DIR = "./dataset_cleaned"  # Clean output folder
+# Paths matching your exact directory layout
+SOURCE_DIR = "./dataset"          # Contains dataset/test/images and dataset/test/labels
+OUTPUT_DIR = "./dataset_cleaned"  # Clean output destination
 
-SPLITS = ['train', 'valid', 'test']
+SPLITS = ['test']
 
-print("[INFO] Starting dataset cleaning and index remapping...")
+print("[INFO] Starting test dataset cleaning and class ID remapping...")
 
 for split in SPLITS:
-    src_img_dir = os.path.join(SOURCE_DIR, 'images', split)
-    src_lbl_dir = os.path.join(SOURCE_DIR, 'labels', split)
+    # Matching: dataset/test/images and dataset/test/labels
+    src_img_dir = os.path.join(SOURCE_DIR, split, 'images')
+    src_lbl_dir = os.path.join(SOURCE_DIR, split, 'labels')
     
-    dst_img_dir = os.path.join(OUTPUT_DIR, 'images', split)
-    dst_lbl_dir = os.path.join(OUTPUT_DIR, 'labels', split)
+    # Target output structure: dataset_cleaned/test/images and dataset_cleaned/test/labels
+    dst_img_dir = os.path.join(OUTPUT_DIR, split, 'images')
+    dst_lbl_dir = os.path.join(OUTPUT_DIR, split, 'labels')
     
     if not os.path.exists(src_lbl_dir):
-        print(f"[SKIP] Split '{split}' not found at {src_lbl_dir}")
+        print(f"[ERROR] Source label directory not found at: {src_lbl_dir}")
         continue
         
     os.makedirs(dst_img_dir, exist_ok=True)
@@ -62,47 +63,55 @@ for split in SPLITS:
                 parts = line.strip().split()
                 if not parts:
                     continue
-                old_cls_id = int(parts[0])
+                try:
+                    old_cls_id = int(parts[0])
+                except ValueError:
+                    continue
                 
                 if old_cls_id in TARGET_OLD_IDS:
                     new_cls_id = REMAP_DICT[old_cls_id][0]
-                    # Rewrite line with the new mapped ID
                     new_line = f"{new_cls_id} " + " ".join(parts[1:]) + "\n"
                     valid_lines.append(new_line)
                     total_labels_remapped += 1
         
-        # Only copy image and label if at least one target animal is present
+        # Only copy image and label if at least one target class is present
         if valid_lines:
             base_name = os.path.splitext(label_file)[0]
-            # Check image extensions
-            for ext in ['.jpg', '.jpeg', '.png', '.JPG', '.PNG']:
+            img_found = False
+            
+            for ext in ['.jpg', '.jpeg', '.png', '.JPG', '.PNG', '.JPEG']:
                 img_name = base_name + ext
                 src_img_path = os.path.join(src_img_dir, img_name)
+                
                 if os.path.exists(src_img_path):
                     shutil.copy(src_img_path, os.path.join(dst_img_dir, img_name))
+                    img_found = True
                     break
             
-            dst_label_path = os.path.join(dst_lbl_dir, label_file)
-            with open(dst_label_path, 'w') as f:
-                f.writelines(valid_lines)
+            if img_found:
+                dst_label_path = os.path.join(dst_lbl_dir, label_file)
+                with open(dst_label_path, 'w') as f:
+                    f.writelines(valid_lines)
+                kept_images += 1
+            else:
+                print(f"[WARN] Label exists but image not found for: {base_name}")
                 
-            kept_images += 1
-            
     print(f"[{split.upper()}] Processed: Kept {kept_images} images with {total_labels_remapped} valid bounding boxes.")
 
 # 2. Write the verified YAML config
+class_names = [REMAP_DICT[old_id][1] for old_id in sorted(REMAP_DICT.keys(), key=lambda x: REMAP_DICT[x][0])]
+
 yaml_data = {
     'path': os.path.abspath(OUTPUT_DIR),
-    'train': 'images/train',
-    'val': 'images/valid',
-    'test': 'images/test' if os.path.exists(os.path.join(OUTPUT_DIR, 'images', 'test')) else 'images/valid',
-    'nc': 16,
-    'names': [REMAP_DICT[old_id][1] for old_id in sorted(REMAP_DICT.keys(), key=lambda x: REMAP_DICT[x][0])]
+    'val': 'test/images',     # Points to dataset_cleaned/test/images
+    'test': 'test/images',
+    'nc': len(class_names),
+    'names': class_names
 }
 
 yaml_path = os.path.join(OUTPUT_DIR, 'wildlife_16.yaml')
 with open(yaml_path, 'w') as f:
     yaml.dump(yaml_data, f, sort_keys=False)
 
-print(f"\n[SUCCESS] Clean dataset ready at: {OUTPUT_DIR}")
+print(f"\n[SUCCESS] Clean dataset ready at: {os.path.abspath(OUTPUT_DIR)}")
 print(f"[SUCCESS] Dataset YAML generated at: {yaml_path}")
